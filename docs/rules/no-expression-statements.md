@@ -66,6 +66,7 @@ This rule accepts an options object of the following type:
 type Options = {
   ignoreCodePattern?: string[] | string;
   ignoreVoid?: boolean;
+  ignoreNever?: boolean;
   ignoreSelfReturning?: boolean;
 };
 ```
@@ -75,18 +76,24 @@ type Options = {
 ```ts
 const defaults = {
   ignoreVoid: false,
+  ignoreNever: false,
   ignoreSelfReturning: false,
 };
 ```
 
 ### `ignoreVoid`
 
-When enabled, expression of type `void` and `Promise<void>` are not flagged as violations.
-This options requires TypeScript in order to work.
+When enabled, expressions of type `void` and `Promise<void>` are not flagged as violations.
+This option requires TypeScript in order to work.
+
+### `ignoreNever`
+
+When enabled, expressions of type `never` and `Promise<never>` are not flagged as violations.
+This option requires TypeScript in order to work.
 
 ### `ignoreSelfReturning`
 
-Like `ignoreVoid` but instead does not flag function calls that always only return `this`.
+Like `ignoreVoid` and `ignoreNever` but instead does not flag function calls that always only return `this`.
 
 Limitation: The function declaration must explicitly use `return this`; equivalents
 (such as assign this to a variable first, that is then returned) won't be considered valid.
