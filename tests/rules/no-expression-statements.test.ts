@@ -103,6 +103,24 @@ describe(name, () => {
         });
       });
 
+      it("ignoreNever", async () => {
+        await valid({
+          code: dedent`
+            function foo(): never { throw new Error(); }
+            foo();
+          `,
+          options: [{ ignoreNever: true }],
+        });
+
+        await valid({
+          code: dedent`
+            async function foo(): Promise<never> { throw new Error(); }
+            foo();
+          `,
+          options: [{ ignoreNever: true }],
+        });
+      });
+
       it("ignoreSelfReturning", async () => {
         await valid({
           code: dedent`

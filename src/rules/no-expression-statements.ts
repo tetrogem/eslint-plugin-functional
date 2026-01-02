@@ -27,6 +27,7 @@ export const fullName: `${typeof ruleNameScope}/${typeof name}` = `${ruleNameSco
 type RawOptions = [
   IgnoreCodePatternOption & {
     ignoreVoid: boolean;
+    ignoreNever: boolean;
     ignoreSelfReturning: boolean;
   },
 ];
@@ -39,6 +40,9 @@ const schema: JSONSchema4[] = [
     type: "object",
     properties: deepmerge(ignoreCodePatternOptionSchema, {
       ignoreVoid: {
+        type: "boolean",
+      },
+      ignoreNever: {
         type: "boolean",
       },
       ignoreSelfReturning: {
@@ -55,6 +59,7 @@ const schema: JSONSchema4[] = [
 const defaultOptions: RawOptions = [
   {
     ignoreVoid: false,
+    ignoreNever: false,
     ignoreSelfReturning: false,
   },
 ];
@@ -108,9 +113,9 @@ function checkExpressionStatement(
     };
   }
 
-  const { ignoreVoid, ignoreSelfReturning } = optionsObject;
+  const { ignoreVoid, ignoreNever, ignoreSelfReturning } = optionsObject;
 
-  if ((ignoreVoid || ignoreSelfReturning) && isCallExpression(node.expression)) {
+  if ((ignoreVoid || ignoreNever || ignoreSelfReturning) && isCallExpression(node.expression)) {
     const returnType = getTypeOfNode(node.expression, context);
     if (returnType === null) {
       return {
@@ -126,6 +131,20 @@ function checkExpressionStatement(
           isPromiseType(context, returnType) &&
           (returnType.typeArguments as ts.Type[]).length > 0 &&
           tsApiUtils?.isIntrinsicVoidType((returnType.typeArguments as ts.Type[])[0]!) === true))
+    ) {
+      return {
+        context,
+        descriptors: [],
+      };
+    }
+
+    if (
+      ignoreNever &&
+      (tsApiUtils?.isIntrinsicNeverType(returnType) === true ||
+        ("typeArguments" in returnType &&
+          isPromiseType(context, returnType) &&
+          (returnType.typeArguments as ts.Type[]).length > 0 &&
+          tsApiUtils?.isIntrinsicNeverType((returnType.typeArguments as ts.Type[])[0]!) === true))
     ) {
       return {
         context,
