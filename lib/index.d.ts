@@ -323,8 +323,19 @@ declare const errorMessages$18: {
 	readonly keyword: "Readonly type using 'Readonly<T>' is forbidden. Use 'readonly' keyword instead.";
 };
 declare const rule$18: Rule<keyof typeof errorMessages$18, RawOptions$18>;
-declare const name$19 = "type-declaration-immutability";
+declare const name$19 = "strict-tuples";
 declare const fullName$19: `${typeof ruleNameScope}/${typeof name$19}`;
+type CoreOptions$3 = {};
+type RawOptions$19 = [
+	RawOverridableOptions<CoreOptions$3>
+];
+declare const errorMessages$19: {
+	readonly mutateLength: "Modifying the length of a tuple is not allowed.";
+	readonly assignToArray: "Tuple types are not assignable to array types.";
+};
+declare const rule$19: Rule<keyof typeof errorMessages$19, RawOptions$19>;
+declare const name$20 = "type-declaration-immutability";
+declare const fullName$20: `${typeof ruleNameScope}/${typeof name$20}`;
 declare enum RuleEnforcementComparator {
 	Less = -2,
 	AtMost = -1,
@@ -343,7 +354,7 @@ type FixerConfig = {
 	message?: string;
 };
 type SuggestionsConfig = FixerConfig[];
-type RawOptions$19 = [
+type RawOptions$20 = [
 	IgnoreIdentifierPatternOption & {
 		rules: Array<{
 			identifiers: string | string[];
@@ -355,7 +366,7 @@ type RawOptions$19 = [
 		ignoreInterfaces: boolean;
 	}
 ];
-declare const errorMessages$19: {
+declare const errorMessages$20: {
 	readonly Less: "This type is declare to have an immutability less than \"{{ expected }}\" (actual: \"{{ actual }}\").";
 	readonly AtLeast: "This type is declare to have an immutability of at least \"{{ expected }}\" (actual: \"{{ actual }}\").";
 	readonly Exactly: "This type is declare to have an immutability of exactly \"{{ expected }}\" (actual: \"{{ actual }}\").";
@@ -370,7 +381,7 @@ type ImmutabilityRule = {
 	fixers: FixerConfig[] | false;
 	suggestions: SuggestionsConfig | false;
 };
-declare const rule$19: Rule<keyof typeof errorMessages$19, RawOptions$19>;
+declare const rule$20: Rule<keyof typeof errorMessages$20, RawOptions$20>;
 declare const rules: Readonly<{
 	[name]: typeof rule;
 	[name$1]: typeof rule$1;
@@ -391,6 +402,7 @@ declare const rules: Readonly<{
 	[name$16]: typeof rule$16;
 	[name$17]: typeof rule$17;
 	[name$18]: typeof rule$18;
+	[name$19]: typeof rule$19;
 	[typeDeclarationImmutability.name]: typeof typeDeclarationImmutability.rule;
 }>;
 declare const meta: {
@@ -421,7 +433,7 @@ type EslintPluginFunctional = FlatConfig.Plugin & {
 declare const _default: EslintPluginFunctional;
 
 declare namespace typeDeclarationImmutability {
-	export { ImmutabilityRule, RuleEnforcementComparator, fullName$19 as fullName, name$19 as name, rule$19 as rule };
+	export { ImmutabilityRule, RuleEnforcementComparator, fullName$20 as fullName, name$20 as name, rule$20 as rule };
 }
 
 export {
