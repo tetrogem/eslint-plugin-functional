@@ -17,6 +17,7 @@ import * as preferPropertySignatures from "./prefer-property-signatures";
 import * as preferReadonlyTypes from "./prefer-readonly-type";
 import * as preferTacit from "./prefer-tacit";
 import * as readonlyType from "./readonly-type";
+import * as strictTuples from "./strict-tuples";
 import * as typeDeclarationImmutability from "./type-declaration-immutability";
 
 /**
@@ -42,6 +43,7 @@ export const rules: Readonly<{
   [preferReadonlyTypes.name]: typeof preferReadonlyTypes.rule;
   [preferTacit.name]: typeof preferTacit.rule;
   [readonlyType.name]: typeof readonlyType.rule;
+  [strictTuples.name]: typeof strictTuples.rule;
   [typeDeclarationImmutability.name]: typeof typeDeclarationImmutability.rule;
 }> = {
   [functionalParameters.name]: functionalParameters.rule,
@@ -63,5 +65,6 @@ export const rules: Readonly<{
   [preferReadonlyTypes.name]: preferReadonlyTypes.rule,
   [preferTacit.name]: preferTacit.rule,
   [readonlyType.name]: readonlyType.rule,
+  [strictTuples.name]: strictTuples.rule,
   [typeDeclarationImmutability.name]: typeDeclarationImmutability.rule,
 };
