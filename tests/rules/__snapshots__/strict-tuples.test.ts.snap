@@ -268,7 +268,7 @@ exports[`strict-tuples > typescript > tuple types can't be assigned to array typ
       "endColumn": 28,
       "endLine": 3,
       "line": 3,
-      "message": "Tuple types are not assignable to array types.",
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
       "messageId": "assignToArray",
       "nodeType": "VariableDeclarator",
       "ruleId": "strict-tuples",
@@ -279,7 +279,7 @@ exports[`strict-tuples > typescript > tuple types can't be assigned to array typ
       "endColumn": 14,
       "endLine": 4,
       "line": 4,
-      "message": "Tuple types are not assignable to array types.",
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
       "messageId": "assignToArray",
       "nodeType": "AssignmentExpression",
       "ruleId": "strict-tuples",
@@ -290,7 +290,7 @@ exports[`strict-tuples > typescript > tuple types can't be assigned to array typ
       "endColumn": 27,
       "endLine": 6,
       "line": 6,
-      "message": "Tuple types are not assignable to array types.",
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
       "messageId": "assignToArray",
       "nodeType": "VariableDeclarator",
       "ruleId": "strict-tuples",
@@ -301,7 +301,7 @@ exports[`strict-tuples > typescript > tuple types can't be assigned to array typ
       "endColumn": 51,
       "endLine": 6,
       "line": 6,
-      "message": "Tuple types are not assignable to array types.",
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
       "messageId": "assignToArray",
       "nodeType": "VariableDeclarator",
       "ruleId": "strict-tuples",
@@ -323,7 +323,7 @@ var arr2: number[] = tuple, arr3: number[] = tuple;",
           "endColumn": 28,
           "endLine": 3,
           "line": 3,
-          "message": "Tuple types are not assignable to array types.",
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
           "messageId": "assignToArray",
           "nodeType": "VariableDeclarator",
           "ruleId": "rule-to-test/strict-tuples",
@@ -334,7 +334,7 @@ var arr2: number[] = tuple, arr3: number[] = tuple;",
           "endColumn": 14,
           "endLine": 4,
           "line": 4,
-          "message": "Tuple types are not assignable to array types.",
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
           "messageId": "assignToArray",
           "nodeType": "AssignmentExpression",
           "ruleId": "rule-to-test/strict-tuples",
@@ -345,7 +345,7 @@ var arr2: number[] = tuple, arr3: number[] = tuple;",
           "endColumn": 27,
           "endLine": 6,
           "line": 6,
-          "message": "Tuple types are not assignable to array types.",
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
           "messageId": "assignToArray",
           "nodeType": "VariableDeclarator",
           "ruleId": "rule-to-test/strict-tuples",
@@ -356,7 +356,7 @@ var arr2: number[] = tuple, arr3: number[] = tuple;",
           "endColumn": 51,
           "endLine": 6,
           "line": 6,
-          "message": "Tuple types are not assignable to array types.",
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
           "messageId": "assignToArray",
           "nodeType": "VariableDeclarator",
           "ruleId": "rule-to-test/strict-tuples",
@@ -369,6 +369,225 @@ var array: number[] = tuple;
 array = tuple;
 
 var arr2: number[] = tuple, arr3: number[] = tuple;",
+    },
+  ],
+}
+`;
+
+exports[`strict-tuples > typescript > tuple types can't be assigned to nested array types 1`] = `
+{
+  "fixed": false,
+  "messages": [
+    {
+      "column": 5,
+      "endColumn": 49,
+      "endLine": 3,
+      "line": 3,
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+    {
+      "column": 1,
+      "endColumn": 20,
+      "endLine": 4,
+      "line": 4,
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+      "messageId": "assignToArray",
+      "nodeType": "AssignmentExpression",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+    {
+      "column": 5,
+      "endColumn": 70,
+      "endLine": 6,
+      "line": 6,
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+    {
+      "column": 5,
+      "endColumn": 68,
+      "endLine": 8,
+      "line": 8,
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+    {
+      "column": 5,
+      "endColumn": 66,
+      "endLine": 9,
+      "line": 9,
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+    {
+      "column": 5,
+      "endColumn": 106,
+      "endLine": 11,
+      "line": 11,
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+    {
+      "column": 5,
+      "endColumn": 104,
+      "endLine": 12,
+      "line": 12,
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+    {
+      "column": 5,
+      "endColumn": 98,
+      "endLine": 14,
+      "line": 14,
+      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+  ],
+  "output": "var tuple: [number, number] = [1, 2];
+
+var nested: { nums: number[] } = { nums: tuple };
+nested.nums = tuple;
+
+var mappedType: { [K in "foo" | "bar"]: number[] } = { "foo": tuple };
+
+var strIndexSignature: { [x: string]: number[] } = { "foo": tuple };
+var numIndexSignature: { [x: number]: number[] } = { 100: tuple };
+
+var strIndexSignature2: { [x: string]: number[] } = { "foo": tuple } as { [x: string]: [number, number] };
+var numIndexSignature2: { [x: number]: number[] } = { 100: tuple } as { [x: number]: [number, number] };
+
+var doubleNested: { foo: number[], bar: { baz: number[] } } = { foo: tuple, bar: { baz: tuple } };",
+  "steps": [
+    {
+      "fixed": false,
+      "messages": [
+        {
+          "column": 5,
+          "endColumn": 49,
+          "endLine": 3,
+          "line": 3,
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+        {
+          "column": 1,
+          "endColumn": 20,
+          "endLine": 4,
+          "line": 4,
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+          "messageId": "assignToArray",
+          "nodeType": "AssignmentExpression",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+        {
+          "column": 5,
+          "endColumn": 70,
+          "endLine": 6,
+          "line": 6,
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+        {
+          "column": 5,
+          "endColumn": 68,
+          "endLine": 8,
+          "line": 8,
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+        {
+          "column": 5,
+          "endColumn": 66,
+          "endLine": 9,
+          "line": 9,
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+        {
+          "column": 5,
+          "endColumn": 106,
+          "endLine": 11,
+          "line": 11,
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+        {
+          "column": 5,
+          "endColumn": 104,
+          "endLine": 12,
+          "line": 12,
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+        {
+          "column": 5,
+          "endColumn": 98,
+          "endLine": 14,
+          "line": 14,
+          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+      ],
+      "output": "var tuple: [number, number] = [1, 2];
+
+var nested: { nums: number[] } = { nums: tuple };
+nested.nums = tuple;
+
+var mappedType: { [K in "foo" | "bar"]: number[] } = { "foo": tuple };
+
+var strIndexSignature: { [x: string]: number[] } = { "foo": tuple };
+var numIndexSignature: { [x: number]: number[] } = { 100: tuple };
+
+var strIndexSignature2: { [x: string]: number[] } = { "foo": tuple } as { [x: string]: [number, number] };
+var numIndexSignature2: { [x: number]: number[] } = { 100: tuple } as { [x: number]: [number, number] };
+
+var doubleNested: { foo: number[], bar: { baz: number[] } } = { foo: tuple, bar: { baz: tuple } };",
     },
   ],
 }

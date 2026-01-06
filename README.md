@@ -131,6 +131,7 @@ The [below section](#rules) gives details on which rules are enabled by each rul
 | [no-let](docs/rules/no-let.md)                                               | Disallow mutable variables.                                     | ☑️ ✅ 🔒 ![badge-noMutations][] |     |                               |     |     |     |     |
 | [prefer-immutable-types](docs/rules/prefer-immutable-types.md)               | Require function parameters to be typed as certain immutability | ☑️ ✅ 🔒 ![badge-noMutations][] |     | ![badge-disableTypeChecked][] | 🔧  | 💡  | 💭  |     |
 | [prefer-readonly-type](docs/rules/prefer-readonly-type.md)                   | Prefer readonly types over mutable types.                       |                                 |     | ![badge-disableTypeChecked][] | 🔧  |     | 💭  | ❌  |
+| [strict-tuples](docs/rules/strict-tuples.md)                                 | Enforce treating tuples as fixed length.                        | ☑️ ✅ 🔒 ![badge-noMutations][] |     | ![badge-disableTypeChecked][] |     |     | 💭  |     |
 | [type-declaration-immutability](docs/rules/type-declaration-immutability.md) | Enforce the immutability of types based on patterns.            | ☑️ ✅ 🔒 ![badge-noMutations][] |     | ![badge-disableTypeChecked][] | 🔧  | 💡  | 💭  |     |
 
 ### No Other Paradigms

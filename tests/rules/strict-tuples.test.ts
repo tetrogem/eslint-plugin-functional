@@ -14,6 +14,16 @@ describe(name, () => {
       configs: typescriptConfig,
     });
 
+    it("stress test", async () => {
+      await valid({
+        code: dedent`
+          var x: [number, number] = [5, 6];
+          var y: [{ z: [number, number] }] = [{ z: [3, 7] }];
+        `,
+        options: [],
+      });
+    });
+
     it("doesn't report tuple element mutations", async () => {
       await valid({
         code: dedent`
@@ -139,6 +149,57 @@ describe(name, () => {
         errors: ["assignToArray", "assignToArray", "assignToArray", "assignToArray"],
       });
       expect(invalidResult.result).toMatchSnapshot();
+    });
+
+    it("tuple types can't be assigned to nested array types", async () => {
+      const invalidResult = await invalid({
+        code: dedent`
+          var tuple: [number, number] = [1, 2];
+
+          var nested: { nums: number[] } = { nums: tuple };
+          nested.nums = tuple;
+
+          var mappedType: { [K in "foo" | "bar"]: number[] } = { "foo": tuple };
+
+          var strIndexSignature: { [x: string]: number[] } = { "foo": tuple };
+          var numIndexSignature: { [x: number]: number[] } = { 100: tuple };
+
+          var strIndexSignature2: { [x: string]: number[] } = { "foo": tuple } as { [x: string]: [number, number] };
+          var numIndexSignature2: { [x: number]: number[] } = { 100: tuple } as { [x: number]: [number, number] };
+
+          var doubleNested: { foo: number[], bar: { baz: number[] } } = { foo: tuple, bar: { baz: tuple } };
+        `,
+        errors: [
+          "assignToArray",
+          "assignToArray",
+          "assignToArray",
+          "assignToArray",
+          "assignToArray",
+          "assignToArray",
+          "assignToArray",
+          "assignToArray",
+        ],
+      });
+      expect(invalidResult.result).toMatchSnapshot();
+    });
+
+    it("tuple types can be assigned to nested tuple types", async () => {
+      await valid(dedent`
+        var tuple: [number, number] = [1, 2];
+
+        var nested: { nums: [number, number] } = { nums: tuple };
+        nested.nums = tuple;
+
+        var mappedType: { [K in "foo" | "bar"]: [number, number] } = { "foo": tuple };
+
+        var strIndexSignature: { [x: string]: [number, number] } = { "foo": tuple };
+        var numIndexSignature: { [x: number]: [number, number] } = { 100: tuple };
+
+        var strIndexSignature2: { [x: string]: [number, number] } = { "foo": tuple } as { [x: string]: [number, number] };
+        var numIndexSignature2: { [x: number]: [number, number] } = { 100: tuple } as { [x: number]: [number, number] };
+
+        var doubleNested: { foo: [number, number], bar: { baz: [number, number] } } = { foo: tuple, bar: { baz: tuple } };
+      `);
     });
   });
 });
