@@ -331,7 +331,7 @@ type RawOptions$19 = [
 ];
 declare const errorMessages$19: {
 	readonly mutateLength: "Modifying the length of a tuple is not allowed.";
-	readonly assignToArray: "Tuple types are not assignable to array types.";
+	readonly assignToArray: "Type '{{ tupleType }}' is not assignable to type '{{ arrayType }}'.";
 };
 declare const rule$19: Rule<keyof typeof errorMessages$19, RawOptions$19>;
 declare const name$20 = "type-declaration-immutability";
