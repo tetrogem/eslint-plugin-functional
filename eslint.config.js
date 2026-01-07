@@ -27,7 +27,7 @@ const configs = await rsEslint(
         },
       },
     },
-    formatters: true,
+    formatters: false,
     functional: {
       functionalEnforcement: "lite",
       overrides: {

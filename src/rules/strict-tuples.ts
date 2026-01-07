@@ -127,7 +127,7 @@ function checkCallExpression(
     };
   }
 
-    const checker = getParserServices(context).program.getTypeChecker();
+  const checker = getParserServices(context).program.getTypeChecker();
 
   // Tuple length mutation?
   if (
@@ -166,10 +166,11 @@ function checkAssignmentExpression(
     };
   }
 
+  const checker = getParserServices(context).program.getTypeChecker() as TypeChecker;
   const error = isAssignableViaStrictTupleTypes(
+    checker,
     getTypeOfNode(node.left, context),
     getTypeOfNode(node.right, context),
-    context,
   );
 
   if (error !== null) {
@@ -201,15 +202,16 @@ function checkVariableDeclaration(
 
   // console.log(node.declarations.length);
 
+  const checker = getParserServices(context).program.getTypeChecker() as TypeChecker;
   const descriptors = node.declarations
     .map((declaration) => {
       const leftTypeAnnotation = declaration.id.typeAnnotation?.typeAnnotation;
       const rightNode = declaration.init;
       if (leftTypeAnnotation !== undefined && rightNode !== null) {
         const error = isAssignableViaStrictTupleTypes(
+          checker,
           getTypeOfNode(leftTypeAnnotation, context),
           getTypeOfNode(rightNode, context),
-          context,
         );
 
         if (error !== null) {
@@ -255,7 +257,22 @@ function assignToArrayErrorIntoDescriptor(
   };
 }
 
-function weakMapGetOrInsert<K extends WeakKey, V extends null | {}>(weakMap: WeakMap<K, V>, key: K, orElse: () => V): V {
+function mapGetOrInsert<K, V extends null | {}>(map: Map<K, V>, key: K, orElse: () => V): V {
+  const value = map.get(key);
+  if (value !== undefined) {
+    return value;
+  }
+
+  const newValue = orElse();
+  map.set(key, newValue);
+  return newValue;
+}
+
+function weakMapGetOrInsert<const TWeakMap extends WeakMap<any, any>>(
+  weakMap: TWeakMap,
+  key: TWeakMap extends WeakMap<infer K, any> ? K : never,
+  orElse: () => TWeakMap extends WeakMap<any, infer V> ? V : never,
+): TWeakMap extends WeakMap<any, infer V> ? V : never {
   const value = weakMap.get(key);
   if (value !== undefined) {
     return value;
@@ -269,30 +286,41 @@ function weakMapGetOrInsert<K extends WeakKey, V extends null | {}>(weakMap: Wea
 declare const _recursionIdentityBrand: unique symbol;
 type RecursionIdentity = { [_recursionIdentityBrand]: true };
 
-const leftToRightToAssignableCache: WeakMap<RecursionIdentity, WeakMap<RecursionIdentity, AssignToArrayError | null>> = new WeakMap();
+const checkerToLtrToErrorCache: WeakMap<TypeChecker, Map<number, Map<number, AssignToArrayError | null>>> = new WeakMap();
 
 const setCacheAssignability = (
   checker: TypeChecker,
-  leftType: Type,
-  rightType: Type,
+  leftType: Readonly<Type>,
+  rightType: Readonly<Type>,
   error: AssignToArrayError | null,
 ): void => {
-  const leftRi = checker.getRecursionIdentity(leftType);
-  const rightTypeToAssignability = weakMapGetOrInsert(leftToRightToAssignableCache, leftRi, () => new WeakMap());
-  const rightRi = checker.getRecursionIdentity(rightType);
-  rightTypeToAssignability.set(rightRi, error);
+  const ltrToError = weakMapGetOrInsert(checkerToLtrToErrorCache, checker, () => new Map());
+  const rToError = mapGetOrInsert(ltrToError, getTypeId(leftType), () => new Map());
+  // eslint-disable-next-line functional/immutable-data
+  rToError.set(getTypeId(rightType), error);
 };
 
 const getCacheAssignability = (
   checker: TypeChecker,
-  leftType: Type,
-  rightType: Type,
+  leftType: Readonly<Type>,
+  rightType: Readonly<Type>,
 ): AssignToArrayError | null | undefined => {
-  const leftRi = checker.getRecursionIdentity(leftType);
-  const rightTypeToAssignability = weakMapGetOrInsert(leftToRightToAssignableCache, leftRi, () => new WeakMap());
-  const rightRi = checker.getRecursionIdentity(rightType);
-  return rightTypeToAssignability.get(rightRi);
+  const ltrToError = checkerToLtrToErrorCache.get(checker);
+  if (ltrToError === undefined) {
+    return undefined;
+  }
+
+  const rToError = ltrToError.get(getTypeId(leftType));
+  if (rToError === undefined) {
+    return rToError;
+  }
+
+  return rToError.get(getTypeId(rightType));
 };
+
+function getTypeId(type: Type): number {
+  return (type as TypeWithId).id;
+}
 
 type TypeScriptTypeChecker = import("typescript").TypeChecker;
 
@@ -302,130 +330,222 @@ interface TypeChecker extends TypeScriptTypeChecker {
   getRecursionIdentity(type: Type): RecursionIdentity;
 }
 
+// eslint-disable-next-line ts/consistent-type-definitions
+interface TypeWithId extends Type {
+  id: number;
+}
+
+const DEBUG = false;
+
 function isAssignableViaStrictTupleTypes(
-  leftType: Type,
-  rightType: Type,
-  context: Readonly<RuleContext<keyof typeof errorMessages, RawOptions>>,
+  checker: TypeChecker,
+  leftType: Readonly<Type>,
+  rightType: Readonly<Type>,
 ): AssignToArrayError | null {
-  const checker = getParserServices(context).program.getTypeChecker() as TypeChecker;
+  // const leftTypeName = checker.typeToString(leftType);
+  // const rightTypeName = checker.typeToString(rightType);
+
+  // console.log(`TYPES: L: ${checker.typeToString(leftType)} (${getTypeId(checker, leftType)}) (${leftType.id}); R: ${checker.typeToString(rightType)} (${getTypeId(checker, rightType)}) (${rightType.id})`);
+
+  if (getTypeId(leftType) === getTypeId(rightType)) {
+    if (DEBUG) {
+      console.log(`ID MATCH! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)}); == true`);
+    }
+    return null;
+  }
 
   // see if we already computed if there's an error
   const cachedError = getCacheAssignability(checker, leftType, rightType);
   if (cachedError !== undefined) {
+    if (DEBUG) {
+      console.log(`CACHE HIT! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)}); == ${cachedError === null}`);
+    }
     return cachedError;
   }
 
   // otherwise compute it
-  const error = (() => {
-    // if right is tuple, check if left is too (if so, it's assignable)
-    if (checker.isTupleType(rightType)) {
-      if (!checker.isTupleType(leftType) && checker.isArrayLikeType(leftType)) {
-        return {
-          tupleType: checker.typeToString(rightType),
-          arrayType: checker.typeToString(leftType),
-        };
+  if (DEBUG) {
+    console.log(`CACHE MISS! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)})`);
+  }
+  const error = computeIsAssignableViaStrictTupleTypes(checker, leftType, rightType);
+  if (DEBUG) {
+    console.log(`CACHED! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)}); == ${error === null}`);
+  }
+  setCacheAssignability(checker, leftType, rightType, error);
+
+  return error;
+}
+
+type AssignToArrayErrorNewCtx = {
+  checker: TypeChecker;
+  tupleType: Type;
+  arrayType: Type;
+};
+
+function assignToArrayErrorNew(ctx: Readonly<AssignToArrayErrorNewCtx>): AssignToArrayError {
+  const {
+ checker, tupleType, arrayType
+} = ctx;
+
+  return {
+    tupleType: checker.typeToString(tupleType),
+    arrayType: checker.typeToString(arrayType),
+  };
+}
+
+function computeIsAssignableViaStrictTupleTypes(
+  checker: TypeChecker,
+  leftType: Readonly<Type>,
+  rightType: Readonly<Type>,
+): AssignToArrayError | null {
+  // ignore types that already aren't compatible in vanilla TS
+  if (!checker.isTypeAssignableTo(rightType, leftType)) {
+    if (DEBUG) {
+      console.log(`NOT ASSIGNABLE! L: ${checker.typeToString(leftType)} (${leftType.id}); R: ${checker.typeToString(rightType)} (${rightType.id})`);
+    }
+    return null;
+  }
+
+  if (rightType.isUnion()) {
+    // eslint-disable-next-line functional/no-loop-statements
+    for (const rightVariant of rightType.types) {
+      if (!checker.isTypeAssignableTo(rightVariant, leftType)) {
+        continue;
+      }
+
+      if (isAssignableViaStrictTupleTypes(checker, leftType, rightVariant) !== null) {
+        return assignToArrayErrorNew({
+          checker,
+          tupleType: rightType,
+          arrayType: leftType,
+        });
       }
     }
 
-    // if right is not a tuple, or left & right are both tuples, check properties next
-    const leftStringIndexInfo = checker.getIndexInfoOfType(leftType, IndexKind.String);
-    const leftNumberIndexInfo = checker.getIndexInfoOfType(leftType, IndexKind.Number);
-    const rightProps = checker.getPropertiesOfType(rightType);
-    const rightStringIndexInfo = checker.getIndexInfoOfType(rightType, IndexKind.String);
-    const rightNumberIndexInfo = checker.getIndexInfoOfType(rightType, IndexKind.Number);
+    return null;
+  }
 
-    if (rightStringIndexInfo !== undefined && leftStringIndexInfo !== undefined) {
-      const err = isAssignableViaStrictTupleTypes(leftStringIndexInfo.type, rightStringIndexInfo.type, context);
-      if (err !== null) {
-        return err;
+  if (leftType.isUnion()) {
+    // eslint-disable-next-line functional/no-loop-statements
+    for (const leftVariant of leftType.types) {
+      if (isAssignableViaStrictTupleTypes(checker, leftVariant, rightType) !== null) {
+        return assignToArrayErrorNew({
+          checker,
+          tupleType: rightType,
+          arrayType: leftType,
+        });
       }
     }
 
-    if (rightNumberIndexInfo !== undefined && leftNumberIndexInfo !== undefined) {
-      const err = isAssignableViaStrictTupleTypes(leftNumberIndexInfo.type, rightNumberIndexInfo.type, context);
-      if (err !== null) {
-        return err;
-      }
+    return null;
+  }
+
+  // past this point, left type & right type are not unions
+
+  // if right is tuple, check if left is too (if so, it's assignable)
+  if (checker.isTupleType(rightType)) {
+    if (!checker.isTupleType(leftType) && checker.isArrayLikeType(leftType)) {
+      return assignToArrayErrorNew({
+        checker,
+        tupleType: rightType,
+        arrayType: leftType,
+      });
     }
+  }
+
+  // if right is not a tuple, or left & right are both tuples, check properties next
+  const leftStringIndexInfo = checker.getIndexInfoOfType(leftType, IndexKind.String);
+  const leftNumberIndexInfo = checker.getIndexInfoOfType(leftType, IndexKind.Number);
+  const rightProps = checker.getPropertiesOfType(rightType);
+  const rightStringIndexInfo = checker.getIndexInfoOfType(rightType, IndexKind.String);
+  const rightNumberIndexInfo = checker.getIndexInfoOfType(rightType, IndexKind.Number);
+
+  if (rightStringIndexInfo !== undefined && leftStringIndexInfo !== undefined) {
+    const err = isAssignableViaStrictTupleTypes(checker, leftStringIndexInfo.type, rightStringIndexInfo.type);
+    if (err !== null) {
+      return err;
+    }
+  }
+
+  if (rightNumberIndexInfo !== undefined && leftNumberIndexInfo !== undefined) {
+    const err = isAssignableViaStrictTupleTypes(checker, leftNumberIndexInfo.type, rightNumberIndexInfo.type);
+    if (err !== null) {
+      return err;
+    }
+  }
+
+  // eslint-disable-next-line functional/no-loop-statements
+  for (const rightProp of rightProps) {
+    const rightPropType = checker.getTypeOfSymbol(rightProp);
+    const rightDecls = getAllSymbolDeclarations(rightProp);
+    // const rightDecls: Declaration[] = [];
+
+    const leftProp = checker.getPropertyOfType(leftType, rightProp.name);
+    const leftPropType = leftProp === undefined ? undefined : checker.getTypeOfSymbol(leftProp);
+    const leftDecls = leftProp === undefined ? undefined : getAllSymbolDeclarations(leftProp);
+    // const leftDecls: Declaration[] = [];
+
+    // eslint-disable-next-line unicorn/consistent-function-scoping
+    const rightIsAssignableToLeftProp = (right: Type): AssignToArrayError | null => {
+      if (leftPropType !== undefined) {
+        const err = isAssignableViaStrictTupleTypes(checker, leftPropType, right);
+        if (err !== null) {
+          return err;
+        }
+      }
+
+      if (leftProp !== undefined) {
+        if (leftDecls !== undefined) {
+          // eslint-disable-next-line functional/no-loop-statements
+          for (const leftDecl of leftDecls) {
+            const leftDeclType = checker.getTypeOfSymbolAtLocation(leftProp, leftDecl);
+
+            const err = isAssignableViaStrictTupleTypes(checker, leftDeclType, right);
+            if (err !== null) {
+              return err;
+            }
+          }
+        }
+      }
+
+      return null;
+    };
+
+    rightIsAssignableToLeftProp(rightPropType);
 
     // eslint-disable-next-line functional/no-loop-statements
-    for (const rightProp of rightProps) {
-      const rightPropType = checker.getTypeOfSymbol(rightProp);
-      const rightDecls = getAllSymbolDeclarations(rightProp);
-      // const rightDecls: Declaration[] = [];
+    for (const rightDecl of rightDecls) {
+      if (!isNamedDeclarationWithName(rightDecl)) {
+        continue;
+      }
 
-      const leftProp = checker.getPropertyOfType(leftType, rightProp.name);
-      const leftPropType = leftProp === undefined ? undefined : checker.getTypeOfSymbol(leftProp);
-      const leftDecls = leftProp === undefined ? undefined : getAllSymbolDeclarations(leftProp);
-      // const leftDecls: Declaration[] = [];
+      const rightDeclType = checker.getTypeOfSymbolAtLocation(rightProp, rightDecl);
 
-      // eslint-disable-next-line unicorn/consistent-function-scoping
-      const rightIsAssignableToLeftProp = (right: Type): AssignToArrayError | null => {
-        if (leftPropType !== undefined) {
-          const err = isAssignableViaStrictTupleTypes(leftPropType, right, context);
+      const declErr = rightIsAssignableToLeftProp(rightDeclType);
+      if (declErr !== null) {
+        return declErr;
+      }
+
+      if (isStringLiteral(rightDecl.name)) {
+        if (leftStringIndexInfo !== undefined) {
+          const err = isAssignableViaStrictTupleTypes(checker, leftStringIndexInfo.type, rightDeclType);
           if (err !== null) {
             return err;
           }
         }
-
-        if (leftProp !== undefined) {
-          if (leftDecls !== undefined) {
-            // eslint-disable-next-line functional/no-loop-statements
-            for (const leftDecl of leftDecls) {
-              const leftDeclType = checker.getTypeOfSymbolAtLocation(leftProp, leftDecl);
-
-              const err = isAssignableViaStrictTupleTypes(leftDeclType, right, context);
-              if (err !== null) {
-                return err;
-              }
-            }
-          }
-        }
-
-        return null;
-      };
-
-      rightIsAssignableToLeftProp(rightPropType);
-
-      // eslint-disable-next-line functional/no-loop-statements
-      for (const rightDecl of rightDecls) {
-        if (!isNamedDeclarationWithName(rightDecl)) {
-          continue;
-        }
-
-        const rightDeclType = checker.getTypeOfSymbolAtLocation(rightProp, rightDecl);
-
-        const declErr = rightIsAssignableToLeftProp(rightDeclType);
-        if (declErr !== null) {
-          return declErr;
-        }
-
-        if (isStringLiteral(rightDecl.name)) {
-          if (leftStringIndexInfo !== undefined) {
-            const err = isAssignableViaStrictTupleTypes(leftStringIndexInfo.type, rightDeclType, context);
-            if (err !== null) {
-              return err;
-            }
-          }
-        } else if (isNumericLiteral(rightDecl.name)) {
-          if (leftNumberIndexInfo !== undefined) {
-            const err = isAssignableViaStrictTupleTypes(leftNumberIndexInfo.type, rightDeclType, context);
-            if (err !== null) {
-              return err;
-            }
+      } else if (isNumericLiteral(rightDecl.name)) {
+        if (leftNumberIndexInfo !== undefined) {
+          const err = isAssignableViaStrictTupleTypes(checker, leftNumberIndexInfo.type, rightDeclType);
+          if (err !== null) {
+            return err;
           }
         }
       }
     }
+  }
 
-    // no error
-    return null;
-  })();
-
-  // store error result in cache
-  setCacheAssignability(checker, leftType, rightType, error);
-
-  return error;
+  // no error
+  return null;
 }
 
 // Create the rule.

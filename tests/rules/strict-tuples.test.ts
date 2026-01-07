@@ -14,16 +14,6 @@ describe(name, () => {
       configs: typescriptConfig,
     });
 
-    it("stress test", async () => {
-      await valid({
-        code: dedent`
-          var x: [number, number] = [5, 6];
-          var y: [{ z: [number, number] }] = [{ z: [3, 7] }];
-        `,
-        options: [],
-      });
-    });
-
     it("doesn't report tuple element mutations", async () => {
       await valid({
         code: dedent`
@@ -145,10 +135,29 @@ describe(name, () => {
           array = tuple;
 
           var arr2: number[] = tuple, arr3: number[] = tuple;
+
+          var toUnion: number[] | null = tuple;
+          var fromUnion: number[] | null | undefined = tuple as [number, number] | null;
         `,
-        errors: ["assignToArray", "assignToArray", "assignToArray", "assignToArray"],
+        errors: ["assignToArray", "assignToArray", "assignToArray", "assignToArray", "assignToArray", "assignToArray"],
       });
       expect(invalidResult.result).toMatchSnapshot();
+    });
+
+    it("tuple types can be assigned to tuple types", async () => {
+      await valid({
+        code: dedent`
+          var tuple: [number, number] = [1, 2];
+
+          var array: [number, number] = tuple;
+          array = tuple;
+
+          var arr2: [number, number] = tuple, arr3: [number, number] = tuple;
+
+          var toUnion: [number, number] | null = tuple;
+          var fromUnion: [number, number] | null | undefined = tuple as [number, number] | null;
+        `,
+      });
     });
 
     it("tuple types can't be assigned to nested array types", async () => {
@@ -159,7 +168,7 @@ describe(name, () => {
           var nested: { nums: number[] } = { nums: tuple };
           nested.nums = tuple;
 
-          var mappedType: { [K in "foo" | "bar"]: number[] } = { "foo": tuple };
+          var mappedType: { [K in "foo" | "bar"]?: number[] } = { "foo": tuple };
 
           var strIndexSignature: { [x: string]: number[] } = { "foo": tuple };
           var numIndexSignature: { [x: number]: number[] } = { 100: tuple };
@@ -190,7 +199,7 @@ describe(name, () => {
         var nested: { nums: [number, number] } = { nums: tuple };
         nested.nums = tuple;
 
-        var mappedType: { [K in "foo" | "bar"]: [number, number] } = { "foo": tuple };
+        var mappedType: { [K in "foo" | "bar"]?: [number, number] } = { "foo": tuple };
 
         var strIndexSignature: { [x: string]: [number, number] } = { "foo": tuple };
         var numIndexSignature: { [x: number]: [number, number] } = { 100: tuple };
@@ -200,6 +209,80 @@ describe(name, () => {
 
         var doubleNested: { foo: [number, number], bar: { baz: [number, number] } } = { foo: tuple, bar: { baz: tuple } };
       `);
+    });
+
+    describe("stress tests", () => {
+      it("cyclic types", async () => {
+        await valid({
+          code: dedent`
+            interface A<T> {
+              value: T,
+              b: B;
+            }
+
+            interface B<T> {
+              a: A<T> | null;
+            }
+
+            // make the rhs type opaque (black box)
+            var a: A<[number, number]> = { value: [1, 2], b: { a: null } } as A<[number, number]>;
+            a.b.a = a;
+          `,
+          options: [],
+        });
+      });
+
+      it("deep types", async () => {
+        const invalidResult = await invalid({
+          code: dedent`
+            interface ManyProps<T> {
+              a?: T;
+              b?: [number, T];
+              c?: [string, T];
+              d?: [boolean, T];
+              e?: [bigint, T];
+              f?: [symbol, T];
+              g?: T[];
+              h?: () => T;
+              i?: (x: number) => T;
+              j?: (x: string) => T;
+              k?: (x: boolean) => T;
+              l?: (x: bigint) => T;
+              m?: (x: symbol) => T;
+              n?: (x: number, y: number) => T;
+              o?: (x: string, y: string) => T;
+              p?: (x: boolean, y: boolean) => T;
+              q?: (x: bigint, y: bigint) => T;
+              r?: (x: symbol, y: symbol) => T;
+              s?: (x: null, y: null) => T;
+              t?: T[][];
+              u?: T[][][];
+              v?: (() => T)[];
+              w?: (() => () => T)[];
+              x?: (() => () => () => T)[];
+              y?: { t: T };
+              z?: { t: { t: T } };
+            }
+
+            type DeepMap<T, U> = {
+                value?: U,
+                props?: ManyProps<T>,
+            }
+
+            type DeepMapper<T, US> = US extends [infer U, ...infer URest] ? DeepMapper<DeepMap<T, U>, URest> : T;
+
+            // add new entries to the array to test how deep it can handle within ~2s
+            // (not 10s because it may slow down when running all tests)
+            type Deepify<T> = DeepMapper<T, ["A", "B", "C", "D", "E"]>;
+
+            var foo: Deepify<{ foo: [number] }> = {} as Deepify<{ foo: [number] }>;
+            var bar: Deepify<{ foo: number[] }> = foo;
+          `,
+          options: [],
+          errors: ["assignToArray"],
+        });
+        expect(invalidResult.result).toMatchSnapshot();
+      });
     });
   });
 });

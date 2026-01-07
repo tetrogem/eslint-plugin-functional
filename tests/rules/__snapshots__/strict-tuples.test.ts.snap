@@ -259,6 +259,127 @@ y[0].z.unshift(6);",
 }
 `;
 
+exports[`strict-tuples > typescript > stress tests > deep types 1`] = `
+{
+  "fixed": false,
+  "messages": [
+    {
+      "column": 5,
+      "endColumn": 42,
+      "endLine": 42,
+      "line": 42,
+      "message": "Type 'ManyProps<DeepMap<DeepMap<DeepMap<DeepMap<{ foo: [number]; }, "A">, "B">, "C">, "D">> | undefined' is not assignable to type 'ManyProps<DeepMap<DeepMap<DeepMap<DeepMap<{ foo: number[]; }, "A">, "B">, "C">, "D">> | undefined'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+  ],
+  "output": "interface ManyProps<T> {
+  a?: T;
+  b?: [number, T];
+  c?: [string, T];
+  d?: [boolean, T];
+  e?: [bigint, T];
+  f?: [symbol, T];
+  g?: T[];
+  h?: () => T;
+  i?: (x: number) => T;
+  j?: (x: string) => T;
+  k?: (x: boolean) => T;
+  l?: (x: bigint) => T;
+  m?: (x: symbol) => T;
+  n?: (x: number, y: number) => T;
+  o?: (x: string, y: string) => T;
+  p?: (x: boolean, y: boolean) => T;
+  q?: (x: bigint, y: bigint) => T;
+  r?: (x: symbol, y: symbol) => T;
+  s?: (x: null, y: null) => T;
+  t?: T[][];
+  u?: T[][][];
+  v?: (() => T)[];
+  w?: (() => () => T)[];
+  x?: (() => () => () => T)[];
+  y?: { t: T };
+  z?: { t: { t: T } };
+}
+
+type DeepMap<T, U> = {
+    value?: U,
+    props?: ManyProps<T>,
+}
+
+type DeepMapper<T, US> = US extends [infer U, ...infer URest] ? DeepMapper<DeepMap<T, U>, URest> : T;
+
+// add new entries to the array to test how deep it can handle within ~2s
+// (not 10s because it may slow down when running all tests)
+type Deepify<T> = DeepMapper<T, ["A", "B", "C", "D", "E"]>;
+
+var foo: Deepify<{ foo: [number] }> = {} as Deepify<{ foo: [number] }>;
+var bar: Deepify<{ foo: number[] }> = foo;",
+  "steps": [
+    {
+      "fixed": false,
+      "messages": [
+        {
+          "column": 5,
+          "endColumn": 42,
+          "endLine": 42,
+          "line": 42,
+          "message": "Type 'ManyProps<DeepMap<DeepMap<DeepMap<DeepMap<{ foo: [number]; }, "A">, "B">, "C">, "D">> | undefined' is not assignable to type 'ManyProps<DeepMap<DeepMap<DeepMap<DeepMap<{ foo: number[]; }, "A">, "B">, "C">, "D">> | undefined'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+      ],
+      "output": "interface ManyProps<T> {
+  a?: T;
+  b?: [number, T];
+  c?: [string, T];
+  d?: [boolean, T];
+  e?: [bigint, T];
+  f?: [symbol, T];
+  g?: T[];
+  h?: () => T;
+  i?: (x: number) => T;
+  j?: (x: string) => T;
+  k?: (x: boolean) => T;
+  l?: (x: bigint) => T;
+  m?: (x: symbol) => T;
+  n?: (x: number, y: number) => T;
+  o?: (x: string, y: string) => T;
+  p?: (x: boolean, y: boolean) => T;
+  q?: (x: bigint, y: bigint) => T;
+  r?: (x: symbol, y: symbol) => T;
+  s?: (x: null, y: null) => T;
+  t?: T[][];
+  u?: T[][][];
+  v?: (() => T)[];
+  w?: (() => () => T)[];
+  x?: (() => () => () => T)[];
+  y?: { t: T };
+  z?: { t: { t: T } };
+}
+
+type DeepMap<T, U> = {
+    value?: U,
+    props?: ManyProps<T>,
+}
+
+type DeepMapper<T, US> = US extends [infer U, ...infer URest] ? DeepMapper<DeepMap<T, U>, URest> : T;
+
+// add new entries to the array to test how deep it can handle within ~2s
+// (not 10s because it may slow down when running all tests)
+type Deepify<T> = DeepMapper<T, ["A", "B", "C", "D", "E"]>;
+
+var foo: Deepify<{ foo: [number] }> = {} as Deepify<{ foo: [number] }>;
+var bar: Deepify<{ foo: number[] }> = foo;",
+    },
+  ],
+}
+`;
+
 exports[`strict-tuples > typescript > tuple types can't be assigned to array types 1`] = `
 {
   "fixed": false,
@@ -307,13 +428,38 @@ exports[`strict-tuples > typescript > tuple types can't be assigned to array typ
       "ruleId": "strict-tuples",
       "severity": 2,
     },
+    {
+      "column": 5,
+      "endColumn": 37,
+      "endLine": 8,
+      "line": 8,
+      "message": "Type '[number, number]' is not assignable to type 'number[] | null'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
+    {
+      "column": 5,
+      "endColumn": 78,
+      "endLine": 9,
+      "line": 9,
+      "message": "Type '[number, number] | null' is not assignable to type 'number[] | null | undefined'.",
+      "messageId": "assignToArray",
+      "nodeType": "VariableDeclarator",
+      "ruleId": "strict-tuples",
+      "severity": 2,
+    },
   ],
   "output": "var tuple: [number, number] = [1, 2];
 
 var array: number[] = tuple;
 array = tuple;
 
-var arr2: number[] = tuple, arr3: number[] = tuple;",
+var arr2: number[] = tuple, arr3: number[] = tuple;
+
+var toUnion: number[] | null = tuple;
+var fromUnion: number[] | null | undefined = tuple as [number, number] | null;",
   "steps": [
     {
       "fixed": false,
@@ -362,13 +508,38 @@ var arr2: number[] = tuple, arr3: number[] = tuple;",
           "ruleId": "rule-to-test/strict-tuples",
           "severity": 2,
         },
+        {
+          "column": 5,
+          "endColumn": 37,
+          "endLine": 8,
+          "line": 8,
+          "message": "Type '[number, number]' is not assignable to type 'number[] | null'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
+        {
+          "column": 5,
+          "endColumn": 78,
+          "endLine": 9,
+          "line": 9,
+          "message": "Type '[number, number] | null' is not assignable to type 'number[] | null | undefined'.",
+          "messageId": "assignToArray",
+          "nodeType": "VariableDeclarator",
+          "ruleId": "rule-to-test/strict-tuples",
+          "severity": 2,
+        },
       ],
       "output": "var tuple: [number, number] = [1, 2];
 
 var array: number[] = tuple;
 array = tuple;
 
-var arr2: number[] = tuple, arr3: number[] = tuple;",
+var arr2: number[] = tuple, arr3: number[] = tuple;
+
+var toUnion: number[] | null = tuple;
+var fromUnion: number[] | null | undefined = tuple as [number, number] | null;",
     },
   ],
 }
@@ -402,10 +573,10 @@ exports[`strict-tuples > typescript > tuple types can't be assigned to nested ar
     },
     {
       "column": 5,
-      "endColumn": 70,
+      "endColumn": 71,
       "endLine": 6,
       "line": 6,
-      "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+      "message": "Type '[number, number]' is not assignable to type 'number[] | undefined'.",
       "messageId": "assignToArray",
       "nodeType": "VariableDeclarator",
       "ruleId": "strict-tuples",
@@ -472,7 +643,7 @@ exports[`strict-tuples > typescript > tuple types can't be assigned to nested ar
 var nested: { nums: number[] } = { nums: tuple };
 nested.nums = tuple;
 
-var mappedType: { [K in "foo" | "bar"]: number[] } = { "foo": tuple };
+var mappedType: { [K in "foo" | "bar"]?: number[] } = { "foo": tuple };
 
 var strIndexSignature: { [x: string]: number[] } = { "foo": tuple };
 var numIndexSignature: { [x: number]: number[] } = { 100: tuple };
@@ -509,10 +680,10 @@ var doubleNested: { foo: number[], bar: { baz: number[] } } = { foo: tuple, bar:
         },
         {
           "column": 5,
-          "endColumn": 70,
+          "endColumn": 71,
           "endLine": 6,
           "line": 6,
-          "message": "Type '[number, number]' is not assignable to type 'number[]'.",
+          "message": "Type '[number, number]' is not assignable to type 'number[] | undefined'.",
           "messageId": "assignToArray",
           "nodeType": "VariableDeclarator",
           "ruleId": "rule-to-test/strict-tuples",
@@ -579,7 +750,7 @@ var doubleNested: { foo: number[], bar: { baz: number[] } } = { foo: tuple, bar:
 var nested: { nums: number[] } = { nums: tuple };
 nested.nums = tuple;
 
-var mappedType: { [K in "foo" | "bar"]: number[] } = { "foo": tuple };
+var mappedType: { [K in "foo" | "bar"]?: number[] } = { "foo": tuple };
 
 var strIndexSignature: { [x: string]: number[] } = { "foo": tuple };
 var numIndexSignature: { [x: number]: number[] } = { 100: tuple };
