@@ -335,7 +335,7 @@ interface TypeWithId extends Type {
   id: number;
 }
 
-const DEBUG = false;
+// const DEBUG = false;
 
 function isAssignableViaStrictTupleTypes(
   checker: TypeChecker,
@@ -348,29 +348,29 @@ function isAssignableViaStrictTupleTypes(
   // console.log(`TYPES: L: ${checker.typeToString(leftType)} (${getTypeId(checker, leftType)}) (${leftType.id}); R: ${checker.typeToString(rightType)} (${getTypeId(checker, rightType)}) (${rightType.id})`);
 
   if (getTypeId(leftType) === getTypeId(rightType)) {
-    if (DEBUG) {
-      console.log(`ID MATCH! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)}); == true`);
-    }
+    // if (DEBUG) {
+    //   console.log(`ID MATCH! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)}); == true`);
+    // }
     return null;
   }
 
   // see if we already computed if there's an error
   const cachedError = getCacheAssignability(checker, leftType, rightType);
   if (cachedError !== undefined) {
-    if (DEBUG) {
-      console.log(`CACHE HIT! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)}); == ${cachedError === null}`);
-    }
+    // if (DEBUG) {
+    //   console.log(`CACHE HIT! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)}); == ${cachedError === null}`);
+    // }
     return cachedError;
   }
 
   // otherwise compute it
-  if (DEBUG) {
-    console.log(`CACHE MISS! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)})`);
-  }
+  // if (DEBUG) {
+  //   console.log(`CACHE MISS! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)})`);
+  // }
   const error = computeIsAssignableViaStrictTupleTypes(checker, leftType, rightType);
-  if (DEBUG) {
-    console.log(`CACHED! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)}); == ${error === null}`);
-  }
+  // if (DEBUG) {
+  //   console.log(`CACHED! L: ${checker.typeToString(leftType)} (${getTypeId(leftType)}); R: ${checker.typeToString(rightType)} (${getTypeId(rightType)}); == ${error === null}`);
+  // }
   setCacheAssignability(checker, leftType, rightType, error);
 
   return error;
@@ -400,9 +400,9 @@ function computeIsAssignableViaStrictTupleTypes(
 ): AssignToArrayError | null {
   // ignore types that already aren't compatible in vanilla TS
   if (!checker.isTypeAssignableTo(rightType, leftType)) {
-    if (DEBUG) {
-      console.log(`NOT ASSIGNABLE! L: ${checker.typeToString(leftType)} (${leftType.id}); R: ${checker.typeToString(rightType)} (${rightType.id})`);
-    }
+    // if (DEBUG) {
+    //   console.log(`NOT ASSIGNABLE! L: ${checker.typeToString(leftType)} (${leftType.id}); R: ${checker.typeToString(rightType)} (${rightType.id})`);
+    // }
     return null;
   }
 
